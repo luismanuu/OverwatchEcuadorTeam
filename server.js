@@ -66,7 +66,9 @@ ${reason || 'N/A'}
     }
 });
 
-if (process.env.NODE_ENV !== 'production') {
+// Solo iniciar el servidor si se ejecuta localmente.
+// Vercel lo ignorará porque lo importa como módulo.
+if (require.main === module) {
     app.listen(port, () => {
         console.log(`Servidor corriendo en http://localhost:${port}`);
     });
