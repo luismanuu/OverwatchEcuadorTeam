@@ -44,7 +44,7 @@ app.post('/api/submit', async (req, res) => {
 **Rol:** ${role}
 **Rango Más Alto (2 últimas temp):** ${rank}
 
-**¿Tiene 17 años o más antes del 1 de marzo 2026?:** ${age}
+**¿Tiene 17 años o más antes del 1 de abril 2026?:** ${age}
 **¿Es ciudadano/residente legal?:** ${citizenship}
 
 **¿Por qué quieres competir en la OWWC?**
