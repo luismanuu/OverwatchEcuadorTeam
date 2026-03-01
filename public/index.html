@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OWWC 2026 | Ecuador Liquid Metal</title>
+
+    <!-- Google Fonts: Syne (Headings) & Inter (Body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Syne:wght@600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        syne: ['Syne', 'sans-serif'],
+                        inter: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        silver: '#e8eaed',
+                        metallic: '#8c92ac',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- GSAP for Epic Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <!-- Paper.js for Fluid Blob -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paper.js/0.12.17/paper-core.min.js"></script>
+
+    <style>
+        /* Base Liquid Metal Theme */
+        body {
+            background-color: #e8eaed;
+            color: #1a1b1e;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* SVG Noise Texture Overlay */
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.15;
+            background: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noiseFilter"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noiseFilter)"/%3E%3C/svg%3E');
+            mix-blend-mode: overlay;
+        }
+
+        /* Custom Dot Cursor with Blending */
+        .cursor-dot {
+            width: 12px;
+            height: 12px;
+            background-color: white;
+            border-radius: 50%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 10000;
+            transform: translate(-50%, -50%);
+            mix-blend-mode: difference;
+            transition: width 0.3s, height 0.3s;
+        }
+
+        .cursor-hover {
+            width: 40px;
+            height: 40px;
+        }
+
+        /* Essential Glassmorphism & Soft UI Class */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05), inset 0 2px 5px rgba(255, 255, 255, 1);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+
+        /* 1. THE "ONLY PAPER" LIQUID BUTTON EXACT REPLICATION */
+        .only-paper-btn-wrapper {
+            position: relative;
+            padding: 2px;
+            border-radius: 9999px;
+            overflow: hidden;
+            display: inline-flex;
+            cursor: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .only-paper-btn-wrapper:hover {
+            transform: scale(1.02);
+        }
+
+        /* The Animated Liquid/Light Ring Behind */
+        .only-paper-btn-bg {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg,
+                    transparent 0%,
+                    rgba(255, 255, 255, 1) 20%,
+                    transparent 40%,
+                    transparent 60%,
+                    rgba(255, 255, 255, 1) 80%,
+                    transparent 100%);
+            animation: spin 3s linear infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* The Pill Shape with Chromatic Aberration */
+        .only-paper-btn-inner {
+            position: relative;
+            z-index: 1;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(232, 234, 237, 0.9));
+            border-radius: 9999px;
+            padding: 1.25rem 3.5rem;
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #1a1b1e;
+            backdrop-filter: blur(12px);
+            box-shadow:
+                inset 0 3px 6px rgba(255, 255, 255, 1),
+                inset 0 -2px 5px rgba(0, 0, 0, 0.02),
+                -2px 0 8px rgba(255, 0, 40, 0.15),
+                2px 0 8px rgba(0, 100, 255, 0.15);
+            text-shadow: 0.5px 0 1px rgba(255, 0, 0, 0.4), -0.5px 0 1px rgba(0, 200, 255, 0.4);
+        }
+
+        .reveal-overflow {
+            overflow: hidden;
+        }
+
+        .reveal-text {
+            display: inline-block;
+            transform: translateY(110%);
+        }
+
+        .text-metallic {
+            background: linear-gradient(to right, #737373, #1a1b1e, #737373);
+            background-size: 200% auto;
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+            animation: shine 4s linear infinite;
+        }
+
+        @keyframes shine {
+            to {
+                background-position: 200% center;
+            }
+        }
+
+        /* Form glass input reset */
+        .glass-input {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(8px);
+            outline: none;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+            color: #1a1b1e;
+        }
+
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.5);
+            border-color: rgba(26, 27, 30, 0.5);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02), 0 0 15px rgba(26, 27, 30, 0.1);
+        }
+
+        .glass-input::placeholder {
+            color: #8c92ac;
+        }
+    </style>
+</head>
+
+<body class="antialiased selection:bg-black selection:text-white">
+
+    <!-- 2. INTERACTIVE BACKGROUND (Paper.js Canvas) -->
+    <canvas id="liquid-canvas" class="fixed inset-0 w-full h-full z-[-1]"></canvas>
+    <div class="noise-overlay"></div>
+    <div class="cursor-dot" id="cursor"></div>
+
+    <!-- 3. UI ELEMENTS: Floating Glassmorphism Navbar -->
+    <nav class="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl rounded-full glass-card px-8 py-4 flex justify-between items-center z-50 transform opacity-0 translate-y-4"
+        id="navbar">
+        <div class="font-syne font-bold text-xl tracking-tighter">OWWC 2026</div>
+        <div class="flex gap-4 md:gap-8 font-inter text-sm font-medium items-center">
+            <a href="#hero" class="hover:opacity-60 transition" data-cursor="hover" data-i18n="nav_home">Inicio</a>
+            <a href="#tryouts" class="hover:opacity-60 transition" data-cursor="hover"
+                data-i18n="nav_tryouts">Tryouts</a>
+            <button id="lang-toggle"
+                class="ml-2 md:ml-4 px-3 py-1.5 rounded-full border border-gray-400 bg-white/30 hover:bg-white/60 transition text-xs font-bold uppercase cursor-none"
+                data-cursor="hover">EN</button>
+        </div>
+    </nav>
+
+    <!-- 5. IMAGERY & HERO SECTION -->
+    <main id="hero" class="relative min-h-screen flex items-center justify-center pt-20">
+
+        <!-- Center Left Image -->
+        <div class="absolute top-1/4 left-10 lg:left-24 w-48 h-64 md:w-64 md:h-80 glass-card p-2 rounded-3xl parallax-img hidden md:block"
+            data-speed="0.05">
+            <div class="w-full h-full rounded-2xl overflow-hidden relative bg-white/50">
+                <img src="./left-team.jpg" alt="Overwatch Red Team"
+                    class="w-full h-full object-cover filter grayscale-[60%] contrast-[1.15] brightness-[0.9] saturate-[0.8] mix-blend-multiply transition duration-500 hover:grayscale-0 hover:saturate-100">
+            </div>
+        </div>
+
+        <!-- Center Right Image -->
+        <div class="absolute bottom-1/4 right-10 lg:right-24 w-56 h-40 md:w-72 md:h-56 glass-card p-2 rounded-3xl parallax-img hidden md:block"
+            data-speed="-0.04">
+            <div class="w-full h-full rounded-2xl overflow-hidden relative bg-white/50">
+                <img src="./right-team.jpg" alt="Overwatch Blue Team"
+                    class="w-full h-full object-cover filter grayscale-[60%] contrast-[1.15] brightness-[0.9] saturate-[0.8] mix-blend-multiply transition duration-500 hover:grayscale-0 hover:saturate-100">
+            </div>
+        </div>
+
+        <!-- Subtle Team Ecuador Logo Background Drop -->
+        <div class="absolute top-32 left-1/2 -translate-x-1/2 opacity-[0.35] w-64 parallax-img" data-speed="0.02">
+            <!-- 
+                Please save your uploaded image into the public directory as "team-ecuador.jpg".
+                The CSS below natively crops out the logo perfectly using a radial mask!
+            -->
+            <img src="./team-ecuador.jpg" alt="Team Ecuador Logo"
+                class="w-full h-auto filter drop-shadow-2xl saturate-[0.35] brightness-[1.1] contrast-[1.2] mix-blend-multiply"
+                style="mask-image: radial-gradient(circle at center, black 40%, transparent 65%); -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 65%); transform: scale(1.5);">
+        </div>
+
+        <!-- Epic Typography -->
+        <div class="text-center z-10 px-4">
+            <p
+                class="font-inter font-medium text-sm md:text-md uppercase tracking-[0.2em] mb-4 text-gray-500 reveal-overflow">
+                <span class="reveal-text headline-stagger" data-i18n="hero_sub">Road to the World Cup</span>
+            </p>
+            <h1
+                class="font-syne font-extrabold text-[4rem] sm:text-[6rem] md:text-[8rem] lg:text-[10rem] leading-[0.85] tracking-tighter text-metallic reveal-overflow mb-2">
+                <span class="reveal-text headline-stagger" data-i18n="hero_title">ECUADOR</span>
+            </h1>
+            <h2
+                class="font-syne font-bold text-3xl md:text-5xl lg:text-6xl tracking-tight text-gray-800 reveal-overflow mb-12">
+                <span class="reveal-text headline-stagger" data-i18n="hero_title2">TEAM TRYOUTS</span>
+            </h2>
+
+            <div class="reveal-overflow">
+                <div class="reveal-text headline-stagger">
+                    <a href="#tryouts" class="only-paper-btn-wrapper" data-cursor="hover">
+                        <div class="only-paper-btn-bg"></div>
+                        <div class="only-paper-btn-inner" data-i18n="hero_btn">
+                            Aplicar Ahora
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- FORM SECTION -->
+    <section id="tryouts" class="relative min-h-screen py-32 px-4 sm:px-10 lg:px-24 z-10 flex flex-col items-center">
+        <!-- Floating background image for form section -->
+        <div class="absolute top-10 left-[-5%] w-96 h-96 opacity-30 parallax-img" data-speed="-0.02">
+            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200"
+                class="w-full h-full object-cover filter grayscale rounded-full mix-blend-multiply blur-xl">
+        </div>
+
+        <div class="w-full max-w-4xl glass-card rounded-[2.5rem] p-8 md:p-16 relative">
+            <div class="text-center mb-16">
+                <h3 class="font-syne font-bold text-4xl tracking-tighter mb-4 text-metallic" data-i18n="form_title">HOJA
+                    DE SOLICITUD OFICIAL
+                </h3>
+                <p class="font-inter text-gray-600 max-w-2xl mx-auto" data-i18n="form_desc">Estas aplicaciones serán
+                    supervisadas por el
+                    Comité de Competición y la Administración de la Copa Mundial de Overwatch. Solicitar una prueba no
+                    garantiza tu participación.</p>
+            </div>
+
+            <form id="owwc-form" class="space-y-10 font-inter">
+                <!-- Group 1 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-wider font-semibold text-gray-700"
+                            data-i18n="label_email">Correo *</label>
+                        <input type="email" name="email" required class="glass-input w-full rounded-2xl px-6 py-4"
+                            placeholder="tu@correo.com" data-i18n-placeholder="placeholder_email" data-cursor="hover">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-wider font-semibold text-gray-700"
+                            data-i18n="label_discord">Nombre en Discord *</label>
+                        <input type="text" name="discord" required class="glass-input w-full rounded-2xl px-6 py-4"
+                            placeholder="Usuario#1234" data-i18n-placeholder="placeholder_discord" data-cursor="hover">
+                    </div>
+                </div>
+
+                <!-- Group 2 -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-wider font-semibold text-gray-700"
+                            data-i18n="label_battletag">Battle Tag *</label>
+                        <input type="text" name="battletag" required class="glass-input w-full rounded-2xl px-6 py-4"
+                            placeholder="Krusher99#9999" data-i18n-placeholder="placeholder_battletag"
+                            data-cursor="hover">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-xs uppercase tracking-wider font-semibold text-gray-700"
+                            data-i18n="label_ingame">Nombre en el juego</label>
+                        <input type="text" name="ingame" class="glass-input w-full rounded-2xl px-6 py-4"
+                            placeholder="Opcional" data-i18n-placeholder="placeholder_ingame" data-cursor="hover">
+                    </div>
+                </div>
+
+                <!-- Role & Rank -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Role -->
+                    <div class="space-y-2 line-wrap">
+                        <label class="block text-xs uppercase tracking-wider font-semibold text-gray-700"
+                            data-i18n="label_role">Rol principal *</label>
+                        <div class="relative">
+                            <select name="role" required
+                                class="glass-input w-full rounded-2xl px-6 py-4 appearance-none cursor-none"
+                                data-cursor="hover">
+                                <option value="" disabled selected data-i18n="role_select">Selecciona tu rol...</option>
+                                <option value="Dps" data-i18n="role_dps">Damage (DPS)</option>
+                                <option value="Tank" data-i18n="role_tank">Tank</option>
+                                <option value="Support" data-i18n="role_support">Support</option>
+                                <option value="Flex" data-i18n="role_flex">Flex</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-6 flex items-center pointer-events-none text-gray-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rank -->
+                    <div class="space-y-2 line-wrap">
+                        <label class="block text-xs uppercase tracking-wider font-semibold text-gray-700"
+                            data-i18n="label_rank">Rango más alto (2 últimas temp.) *</label>
+                        <div class="relative">
+                            <select name="rank" required
+                                class="glass-input w-full rounded-2xl px-6 py-4 appearance-none cursor-none"
+                                data-cursor="hover">
+                                <option value="" disabled selected data-i18n="rank_select">Selecciona...</option>
+                                <option value="Diamante" data-i18n="rank_diamond">Diamante</option>
+                                <option value="Maestro" data-i18n="rank_master">Maestro</option>
+                                <option value="Gran Maestro" data-i18n="rank_gm">Gran Maestro</option>
+                                <option value="Top 500" data-i18n="rank_top500">Top 500</option>
+                                <option value="Campeón" data-i18n="rank_champion">Campeón</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-6 flex items-center pointer-events-none text-gray-500">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Requisites -->
+                <div class="space-y-6 pt-6 border-t border-white/40">
+                    <div class="space-y-3">
+                        <label class="block font-syne font-bold text-lg text-gray-800" data-i18n="req1_title">¿Tienes o
+                            tendrás 17 años antes de Marzo 1, 2026? *</label>
+                        <p class="text-xs text-gray-500" data-i18n="req1_desc">Requerido por Blizzard para viajar a la
+                            etapa final.</p>
+                        <div class="flex gap-6">
+                            <label class="flex items-center gap-3 cursor-none" data-cursor="hover">
+                                <input type="radio" name="age" value="SI" required class="w-5 h-5 accent-gray-800">
+                                <span data-i18n="yes">SI</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-none" data-cursor="hover">
+                                <input type="radio" name="age" value="NO" class="w-5 h-5 accent-gray-800"> <span
+                                    data-i18n="no">NO</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label class="block font-syne font-bold text-lg text-gray-800" data-i18n="req2_title">¿Eres
+                            ciudadano, nacionalizado o residente legal del país? *</label>
+                        <p class="text-xs text-gray-500" data-i18n="req2_desc">Debes tener la nacionalidad, pasaporte o
+                            documentación de residencia legal.</p>
+                        <div class="flex gap-6">
+                            <label class="flex items-center gap-3 cursor-none" data-cursor="hover">
+                                <input type="radio" name="citizenship" value="SI" required
+                                    class="w-5 h-5 accent-gray-800"> <span data-i18n="yes">SI</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-none" data-cursor="hover">
+                                <input type="radio" name="citizenship" value="NO" class="w-5 h-5 accent-gray-800"> <span
+                                    data-i18n="no">NO</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Motivation -->
+                <div class="space-y-2">
+                    <label class="block text-xs uppercase tracking-wider font-semibold text-gray-700"
+                        data-i18n="label_reason">¿Por qué quieres competir en la OWWC?</label>
+                    <textarea name="reason" rows="4"
+                        class="glass-input w-full rounded-2xl px-6 py-4 resize-none cursor-none"
+                        placeholder="Cuéntanos sobre tu motivación..." data-i18n-placeholder="placeholder_reason"
+                        data-cursor="hover"></textarea>
+                </div>
+
+                <!-- Submit (Only Paper Button) -->
+                <div class="text-center pt-8">
+                    <button type="submit" id="submit-btn"
+                        class="only-paper-btn-wrapper outline-none border-none bg-transparent" data-cursor="hover">
+                        <div class="only-paper-btn-bg"></div>
+                        <div class="only-paper-btn-inner" id="submit-btn-text" data-i18n="submit_btn">
+                            Enviar Solicitud
+                        </div>
+                    </button>
+                </div>
+            </form>
+
+            <!-- SUCCESS MESSAGE STATE -->
+            <div id="success-state"
+                class="hidden flex-col items-center justify-center space-y-6 text-center py-10 animation-fade-in">
+                <div
+                    class="w-16 h-16 rounded-full glass-card flex items-center justify-center mb-4 border border-green-400/50 bg-green-400/10">
+                    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h4 class="font-syne font-bold text-3xl text-metallic" data-i18n="success_title">¡Solicitud Recibida!
+                </h4>
+                <p class="font-inter text-gray-700 text-lg max-w-lg" data-i18n="success_desc">Nos pondremos en contacto
+                    contigo pronto para agendar las partidas de prueba.</p>
+
+                <div class="mt-8 glass-card rounded-2xl p-6 border border-white/60">
+                    <p class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2"
+                        data-i18n="success_dates_label">DÍAS TENTATIVOS</p>
+                    <p class="font-syne text-xl text-gray-800 font-semibold" data-i18n="success_dates_value">7-8 y 14-15
+                        de Marzo</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer
+        class="py-8 text-center text-xs text-gray-400 font-inter uppercase tracking-widest relative z-10 border-t border-white/30"
+        data-i18n="footer">
+        © 2026 OWWC Ecuador Team
+    </footer>
+
+    <!-- Scripts for Functionality and Animation -->
+    <script>
+        // ------------------ 0. Language Toggle Logic ------------------
+        const i18n = {
+            es: {
+                nav_home: "Inicio",
+                nav_tryouts: "Tryouts",
+                hero_sub: "Road to the World Cup",
+                hero_title: "ECUADOR",
+                hero_title2: "TEAM TRYOUTS",
+                hero_btn: "Aplicar Ahora",
+                form_title: "HOJA DE SOLICITUD OFICIAL",
+                form_desc: "Estas aplicaciones serán supervisadas por el Comité de Competición y la Administración de la Copa Mundial de Overwatch. Solicitar una prueba no garantiza tu participación.",
+                label_email: "Correo *",
+                label_discord: "Nombre en Discord *",
+                label_battletag: "Battle Tag *",
+                label_ingame: "Nombre en el juego",
+                placeholder_email: "tu@correo.com",
+                placeholder_discord: "Usuario#1234",
+                placeholder_battletag: "Krusher99#9999",
+                placeholder_ingame: "Opcional",
+                label_role: "Rol principal *",
+                role_select: "Selecciona tu rol...",
+                role_dps: "Damage (DPS)",
+                role_tank: "Tank",
+                role_support: "Support",
+                role_flex: "Flex",
+                label_rank: "Rango más alto (2 últimas temp.) *",
+                rank_select: "Selecciona...",
+                rank_diamond: "Diamante",
+                rank_master: "Maestro",
+                rank_gm: "Gran Maestro",
+                rank_top500: "Top 500",
+                rank_champion: "Campeón",
+                req1_title: "¿Tienes o tendrás 17 años antes de Marzo 1, 2026? *",
+                req1_desc: "Requerido por Blizzard para viajar a la etapa final.",
+                req2_title: "¿Eres ciudadano, nacionalizado o residente legal del país? *",
+                req2_desc: "Debes tener la nacionalidad, pasaporte o documentación de residencia legal.",
+                yes: "SI",
+                no: "NO",
+                label_reason: "¿Por qué quieres competir en la OWWC?",
+                placeholder_reason: "Cuéntanos sobre tu motivación...",
+                submit_btn: "Enviar Solicitud",
+                success_title: "¡Solicitud Recibida!",
+                success_desc: "Nos pondremos en contacto contigo pronto para agendar las partidas de prueba.",
+                success_dates_label: "DÍAS TENTATIVOS",
+                success_dates_value: "7-8 y 14-15 de Marzo",
+                footer: "© 2026 OWWC Ecuador Team",
+            },
+            en: {
+                nav_home: "Home",
+                nav_tryouts: "Tryouts",
+                hero_sub: "Road to the World Cup",
+                hero_title: "ECUADOR",
+                hero_title2: "TEAM TRYOUTS",
+                hero_btn: "Apply Now",
+                form_title: "OFFICIAL APPLICATION FORM",
+                form_desc: "These applications will be overseen by your respective Competition Committee and Overwatch World Cup Administration. Requesting a trial does not guarantee your participation.",
+                label_email: "Email *",
+                label_discord: "Discord Name *",
+                label_battletag: "Battle Tag *",
+                label_ingame: "In-game Name",
+                placeholder_email: "you@email.com",
+                placeholder_discord: "User#1234",
+                placeholder_battletag: "Krusher99#9999",
+                placeholder_ingame: "Optional",
+                label_role: "Main Role *",
+                role_select: "Select your role...",
+                role_dps: "Damage (DPS)",
+                role_tank: "Tank",
+                role_support: "Support",
+                role_flex: "Flex",
+                label_rank: "Highest Rank (Last 2 seasons) *",
+                rank_select: "Select...",
+                rank_diamond: "Diamond",
+                rank_master: "Master",
+                rank_gm: "Grandmaster",
+                rank_top500: "Top 500",
+                rank_champion: "Champion",
+                req1_title: "Are you or will you be 17 years old before March 1, 2026? *",
+                req1_desc: "Required by Blizzard to travel to the final stage.",
+                req2_title: "Are you a citizen, naturalized, or legal resident of the country? *",
+                req2_desc: "You must have nationality, passport, or legal residency documentation.",
+                yes: "YES",
+                no: "NO",
+                label_reason: "Why do you want to compete in the OWWC?",
+                placeholder_reason: "Tell us about your motivation...",
+                submit_btn: "Submit Application",
+                success_title: "Application Received!",
+                success_desc: "We will contact you soon for tryouts, to schedule the matches.",
+                success_dates_label: "TENTATIVE DAYS",
+                success_dates_value: "March 7-8 and 14-15",
+                footer: "© 2026 OWWC Ecuador Team",
+            }
+        };
+
+        const globalStrings = {
+            es: { alert_success: "¡Solicitud enviada con éxito! La issue ha sido creada en GitHub.", alert_error: "Error: ", alert_network: "No se pudo conectar con el servidor local.", sending: "ENVIANDO..." },
+            en: { alert_success: "Application sent successfully! The issue has been created on GitHub.", alert_error: "Error: ", alert_network: "Could not connect to the local server.", sending: "SENDING..." }
+        };
+
+        let currentLang = 'es';
+
+        document.getElementById('lang-toggle').addEventListener('click', () => {
+            currentLang = currentLang === 'es' ? 'en' : 'es';
+            document.documentElement.lang = currentLang;
+
+            // Toggle button text (opposite of current lang to indicate what it switches to)
+            document.getElementById('lang-toggle').innerText = currentLang === 'es' ? 'EN' : 'ES';
+
+            // Update text nodes
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[currentLang][key]) {
+                    el.innerText = i18n[currentLang][key];
+                }
+            });
+
+            // Update placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (i18n[currentLang][key]) {
+                    el.placeholder = i18n[currentLang][key];
+                }
+            });
+        });
+
+        // ------------------ 1. Custom Dot Cursor ------------------
+        const cursor = document.getElementById('cursor');
+        // Basic cursor movement
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        // Hover state Expansion
+        const hoverElements = document.querySelectorAll('a, button, input, select, textarea, label, [data-cursor="hover"]');
+        hoverElements.forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('cursor-hover'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('cursor-hover'));
+        });
+
+        // Disable custom cursor on touch devices natively
+        if ('ontouchstart' in window) {
+            document.body.style.cursor = 'auto';
+            cursor.style.display = 'none';
+        }
+
+        // ------------------ 2. GSAP Cinematic Entrance Timeline ------------------
+        gsap.registerPlugin();
+
+        window.onload = () => {
+            const tl = gsap.timeline();
+
+            // Slide up Navbar
+            tl.to("#navbar", {
+                y: 0, opacity: 1, duration: 1.2, ease: "power4.out"
+            }, 0.2);
+
+            // Stagger reveal of main hero text via skew and vertical translation
+            tl.to(".headline-stagger", {
+                y: "0%",
+                skewY: 0,
+                duration: 1.5,
+                stagger: 0.15,
+                ease: "power4.out"
+            }, 0.3);
+        };
+
+        // 3D Parallax Mouse Image Shift
+        document.addEventListener("mousemove", (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5);
+            const y = (e.clientY / window.innerHeight - 0.5);
+
+            gsap.utils.toArray(".parallax-img").forEach((img) => {
+                const speed = parseFloat(img.getAttribute("data-speed") || "0.05");
+                gsap.to(img, {
+                    x: x * window.innerWidth * speed,
+                    y: y * window.innerHeight * speed,
+                    duration: 1.5,
+                    ease: "power2.out"
+                });
+            });
+        });
+
+        // ------------------ 3. Paper.js Fluid Liquid Silver Blob ------------------
+        paper.setup('liquid-canvas');
+
+        // Create the base path
+        const blobPath = new paper.Path({
+            fillColor: new paper.Color(0.9, 0.91, 0.93, 0.8), // Translucent silver
+            closed: true
+        });
+
+        // Build circular blob
+        const segments = 10;
+        const radius = Math.min(window.innerWidth, window.innerHeight) * 0.4;
+        for (let i = 0; i < segments; i++) {
+            const angle = (360 / segments) * i;
+            const point = new paper.Point({
+                length: radius,
+                angle: angle
+            });
+            blobPath.add(paper.view.center.add(point));
+        }
+        blobPath.smooth();
+
+        let mousePos = paper.view.center;
+        paper.view.onMouseMove = function (event) {
+            mousePos = event.point;
+        };
+
+        paper.view.onFrame = function (event) {
+            for (let i = 0; i < segments; i++) {
+                const segment = blobPath.segments[i];
+
+                // Base circular layout
+                const angle = (360 / segments) * i;
+                const rad = angle * Math.PI / 180;
+
+                // Add organic sine wave math
+                const sinSpeed = event.time * 1.5 + i;
+                const sinDist = Math.sin(sinSpeed) * 30; // Amplitude
+
+                let targetX = paper.view.center.x + Math.cos(rad) * (radius + sinDist);
+                let targetY = paper.view.center.y + Math.sin(rad) * (radius + sinDist);
+                let targetPos = new paper.Point(targetX, targetY);
+
+                // Add magnetic push from mouse (Liquid repulsion)
+                const distToMouse = mousePos.getDistance(segment.point);
+                if (distToMouse < 250) {
+                    const pushVector = segment.point.subtract(mousePos).normalize(250 - distToMouse);
+                    targetPos = targetPos.add(pushVector);
+                }
+
+                // Smoothly lerp point to target
+                segment.point = segment.point.add(targetPos.subtract(segment.point).multiply(0.04));
+            }
+            blobPath.smooth();
+        };
+
+        // Window resize handler for canvas
+        paper.view.onResize = function () {
+            blobPath.position = paper.view.center;
+        };
+
+        // ------------------ 4. Form Submission API Logic ------------------
+        const form = document.getElementById('owwc-form');
+        const successState = document.getElementById('success-state');
+        const submitBtn = document.getElementById('submit-btn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btnText = document.getElementById('submit-btn-text');
+            const originalText = btnText.innerText;
+            btnText.innerText = globalStrings[currentLang].sending;
+            submitBtn.style.pointerEvents = 'none';
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                // Post to the local Node server created previously
+                const response = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    // Hide form and show beautiful success UI layout
+                    gsap.to(form, {
+                        opacity: 0,
+                        y: -20,
+                        duration: 0.4,
+                        onComplete: () => {
+                            form.style.display = 'none';
+                            successState.classList.remove('hidden');
+                            successState.classList.add('flex');
+                            gsap.fromTo(successState, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.6, ease: "power3.out" });
+                        }
+                    });
+                } else {
+                    const err = await response.json();
+                    alert(globalStrings[currentLang].alert_error + (err.error || ''));
+                }
+            } catch (err) {
+                alert(globalStrings[currentLang].alert_network);
+            } finally {
+                btnText.innerText = globalStrings[currentLang].submit_btn;
+                submitBtn.style.pointerEvents = 'auto';
+            }
+        });
+    </script>
+</body>
+
+</html>
