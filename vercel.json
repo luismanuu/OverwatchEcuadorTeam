@@ -1,6 +1,7 @@
 {
   "version": 2,
-  "buildCommand": "echo Static",
+  "framework": null,
+  "buildCommand": null,
   "outputDirectory": "public",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index.js" }
