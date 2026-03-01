@@ -7,11 +7,19 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Lazy-load Octokit once per process (avoids re-import on every request)
+let octokitInstance = null;
+async function getOctokit() {
+    if (octokitInstance) return octokitInstance;
+    const { Octokit } = await import('@octokit/rest');
+    const authParams = process.env.GITHUB_TOKEN ? { auth: process.env.GITHUB_TOKEN } : undefined;
+    octokitInstance = new Octokit(authParams);
+    return octokitInstance;
+}
+
 app.post('/api/submit', async (req, res) => {
     try {
-        const { Octokit } = await import('@octokit/rest');
-        const authParams = process.env.GITHUB_TOKEN ? { auth: process.env.GITHUB_TOKEN } : undefined;
-        const octokit = new Octokit(authParams);
+        const octokit = await getOctokit();
 
         const {
             email,

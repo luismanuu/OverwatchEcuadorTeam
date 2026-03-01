@@ -6,9 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OWWC 2026 | Ecuador Liquid Metal</title>
 
-    <!-- Google Fonts: Syne (Headings) & Inter (Body) -->
+    <!-- Preconnect to critical origins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
     <link
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Syne:wght@600;700;800&display=swap"
         rel="stylesheet">
@@ -228,7 +230,7 @@
         <div class="absolute top-1/4 left-10 lg:left-24 w-48 h-64 md:w-64 md:h-80 glass-card p-2 rounded-3xl parallax-img hidden md:block"
             data-speed="0.05">
             <div class="w-full h-full rounded-2xl overflow-hidden relative bg-white/50">
-                <img src="./left-team.jpg" alt="Overwatch Red Team"
+                <img src="./left-team.jpg" alt="Overwatch Red Team" loading="lazy"
                     class="w-full h-full object-cover filter grayscale-[60%] contrast-[1.15] brightness-[0.9] saturate-[0.8] mix-blend-multiply transition duration-500 hover:grayscale-0 hover:saturate-100">
             </div>
         </div>
@@ -237,7 +239,7 @@
         <div class="absolute bottom-1/4 right-10 lg:right-24 w-56 h-40 md:w-72 md:h-56 glass-card p-2 rounded-3xl parallax-img hidden md:block"
             data-speed="-0.04">
             <div class="w-full h-full rounded-2xl overflow-hidden relative bg-white/50">
-                <img src="./right-team.jpg" alt="Overwatch Blue Team"
+                <img src="./right-team.jpg" alt="Overwatch Blue Team" loading="lazy"
                     class="w-full h-full object-cover filter grayscale-[60%] contrast-[1.15] brightness-[0.9] saturate-[0.8] mix-blend-multiply transition duration-500 hover:grayscale-0 hover:saturate-100">
             </div>
         </div>
@@ -248,7 +250,7 @@
                 Please save your uploaded image into the public directory as "team-ecuador.jpg".
                 The CSS below natively crops out the logo perfectly using a radial mask!
             -->
-            <img src="./team-ecuador.jpg" alt="Team Ecuador Logo"
+            <img src="./team-ecuador.jpg" alt="Team Ecuador Logo" loading="lazy"
                 class="w-full h-auto filter drop-shadow-2xl saturate-[0.35] brightness-[1.1] contrast-[1.2] mix-blend-multiply"
                 style="mask-image: radial-gradient(circle at center, black 40%, transparent 65%); -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 65%); transform: scale(1.5);">
         </div>
@@ -285,8 +287,8 @@
     <section id="tryouts" class="relative min-h-screen py-32 px-4 sm:px-10 lg:px-24 z-10 flex flex-col items-center">
         <!-- Floating background image for form section -->
         <div class="absolute top-10 left-[-5%] w-96 h-96 opacity-30 parallax-img" data-speed="-0.02">
-            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200"
-                class="w-full h-full object-cover filter grayscale rounded-full mix-blend-multiply blur-xl">
+            <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200" loading="lazy"
+                class="w-full h-full object-cover filter grayscale rounded-full mix-blend-multiply blur-xl" alt="">
         </div>
 
         <div class="w-full max-w-4xl glass-card rounded-[2.5rem] p-8 md:p-16 relative">
@@ -601,22 +603,43 @@
             });
         });
 
-        // ------------------ 1. Custom Dot Cursor ------------------
+        // ------------------ 1. Custom Dot Cursor + Parallax (single rAF per frame) ------------------
         const cursor = document.getElementById('cursor');
-        // Basic cursor movement
+        let mouseX = 0, mouseY = 0;
+        let rafScheduled = false;
+        const parallaxEls = gsap.utils.toArray(".parallax-img");
+        function onMouseFrame() {
+            rafScheduled = false;
+            cursor.style.left = mouseX + 'px';
+            cursor.style.top = mouseY + 'px';
+            const x = (mouseX / window.innerWidth - 0.5);
+            const y = (mouseY / window.innerHeight - 0.5);
+            parallaxEls.forEach((img) => {
+                const speed = parseFloat(img.getAttribute("data-speed") || "0.05");
+                gsap.to(img, {
+                    x: x * window.innerWidth * speed,
+                    y: y * window.innerHeight * speed,
+                    duration: 1.5,
+                    ease: "power2.out"
+                });
+            });
+        }
         document.addEventListener('mousemove', (e) => {
-            cursor.style.left = e.clientX + 'px';
-            cursor.style.top = e.clientY + 'px';
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            if (!rafScheduled) {
+                rafScheduled = true;
+                requestAnimationFrame(onMouseFrame);
+            }
         });
 
-        // Hover state Expansion
+        // Hover state for cursor
         const hoverElements = document.querySelectorAll('a, button, input, select, textarea, label, [data-cursor="hover"]');
         hoverElements.forEach(el => {
             el.addEventListener('mouseenter', () => cursor.classList.add('cursor-hover'));
             el.addEventListener('mouseleave', () => cursor.classList.remove('cursor-hover'));
         });
 
-        // Disable custom cursor on touch devices natively
         if ('ontouchstart' in window) {
             document.body.style.cursor = 'auto';
             cursor.style.display = 'none';
@@ -642,22 +665,6 @@
                 ease: "power4.out"
             }, 0.3);
         };
-
-        // 3D Parallax Mouse Image Shift
-        document.addEventListener("mousemove", (e) => {
-            const x = (e.clientX / window.innerWidth - 0.5);
-            const y = (e.clientY / window.innerHeight - 0.5);
-
-            gsap.utils.toArray(".parallax-img").forEach((img) => {
-                const speed = parseFloat(img.getAttribute("data-speed") || "0.05");
-                gsap.to(img, {
-                    x: x * window.innerWidth * speed,
-                    y: y * window.innerHeight * speed,
-                    duration: 1.5,
-                    ease: "power2.out"
-                });
-            });
-        });
 
         // ------------------ 3. Paper.js Fluid Liquid Silver Blob ------------------
         paper.setup('liquid-canvas');
@@ -686,31 +693,29 @@
             mousePos = event.point;
         };
 
+        const lerpFactor = 0.04;
+        const mouseRadius = 250;
         paper.view.onFrame = function (event) {
+            const cx = paper.view.center.x;
+            const cy = paper.view.center.y;
+            const mx = mousePos.x;
+            const my = mousePos.y;
             for (let i = 0; i < segments; i++) {
                 const segment = blobPath.segments[i];
-
-                // Base circular layout
-                const angle = (360 / segments) * i;
-                const rad = angle * Math.PI / 180;
-
-                // Add organic sine wave math
-                const sinSpeed = event.time * 1.5 + i;
-                const sinDist = Math.sin(sinSpeed) * 30; // Amplitude
-
-                let targetX = paper.view.center.x + Math.cos(rad) * (radius + sinDist);
-                let targetY = paper.view.center.y + Math.sin(rad) * (radius + sinDist);
-                let targetPos = new paper.Point(targetX, targetY);
-
-                // Add magnetic push from mouse (Liquid repulsion)
-                const distToMouse = mousePos.getDistance(segment.point);
-                if (distToMouse < 250) {
-                    const pushVector = segment.point.subtract(mousePos).normalize(250 - distToMouse);
-                    targetPos = targetPos.add(pushVector);
+                const rad = (Math.PI * 2 / segments) * i;
+                const sinDist = Math.sin(event.time * 1.5 + i) * 30;
+                let tx = cx + Math.cos(rad) * (radius + sinDist);
+                let ty = cy + Math.sin(rad) * (radius + sinDist);
+                const dx = segment.point.x - mx;
+                const dy = segment.point.y - my;
+                const distToMouse = Math.sqrt(dx * dx + dy * dy);
+                if (distToMouse < mouseRadius && distToMouse > 0) {
+                    const push = (mouseRadius - distToMouse) / distToMouse;
+                    tx += dx * push;
+                    ty += dy * push;
                 }
-
-                // Smoothly lerp point to target
-                segment.point = segment.point.add(targetPos.subtract(segment.point).multiply(0.04));
+                segment.point.x += (tx - segment.point.x) * lerpFactor;
+                segment.point.y += (ty - segment.point.y) * lerpFactor;
             }
             blobPath.smooth();
         };
@@ -764,7 +769,7 @@
             } catch (err) {
                 alert(globalStrings[currentLang].alert_network);
             } finally {
-                btnText.innerText = globalStrings[currentLang].submit_btn;
+                btnText.innerText = i18n[currentLang].submit_btn;
                 submitBtn.style.pointerEvents = 'auto';
             }
         });
