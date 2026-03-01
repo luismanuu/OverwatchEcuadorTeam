@@ -199,6 +199,134 @@
         .glass-input::placeholder {
             color: #8c92ac;
         }
+
+        /* Hero: mobile/tablet = full width so title fits with clamp; desktop = size to content so not cut */
+        .hero-typography {
+            max-width: min(90rem, calc(100vw - 1rem));
+            box-sizing: border-box;
+        }
+        @media (min-width: 1024px) {
+            .hero-typography {
+                width: max-content;
+                flex-shrink: 0;
+            }
+        }
+        /* Hero title: scale with viewport; on mobile ensure "ECUADOR" never clips */
+        .hero-title {
+            font-size: clamp(2.5rem, 11vw, 10rem);
+        }
+        @media (max-width: 767px) {
+            .hero-title {
+                font-size: min(2.5rem, calc((100vw - 3rem) / 7));
+            }
+        }
+
+        /* Hero: mobile & tablet */
+        .hero-bg-logo img {
+            transform: scale(1.2);
+        }
+        @media (min-width: 768px) {
+            .hero-bg-logo img {
+                transform: scale(1.5);
+            }
+        }
+        .hero-cta-btn {
+            padding: 0.875rem 1.75rem;
+            font-size: 0.8rem;
+        }
+        @media (min-width: 640px) {
+            .hero-cta-btn {
+                padding: 1rem 2.25rem;
+                font-size: 0.875rem;
+            }
+        }
+        @media (min-width: 768px) {
+            .hero-cta-btn {
+                padding: 1.25rem 3.5rem;
+                font-size: 1rem;
+            }
+        }
+
+        /* Hamburger menu: tablet & mobile */
+        .hamburger-btn {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 44px;
+            height: 44px;
+            padding: 10px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: background 0.2s;
+        }
+        .hamburger-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .hamburger-btn span {
+            display: block;
+            width: 22px;
+            height: 2px;
+            background: #1a1b1e;
+            border-radius: 1px;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+        .hamburger-btn.is-open span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+        .hamburger-btn.is-open span:nth-child(2) {
+            opacity: 0;
+        }
+        .hamburger-btn.is-open span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+        .nav-desktop {
+            display: none;
+        }
+        @media (min-width: 1024px) {
+            .nav-desktop {
+                display: flex;
+            }
+            .hamburger-btn {
+                display: none;
+            }
+        }
+        .nav-mobile {
+            position: fixed;
+            top: 5.5rem; /* below navbar */
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 45;
+            background: rgba(232, 234, 237, 0.98);
+            backdrop-filter: blur(20px);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 2rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .nav-mobile.is-open {
+            opacity: 1;
+            visibility: visible;
+        }
+        .nav-mobile a,
+        .nav-mobile .nav-mobile-lang {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            color: #1a1b1e;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+        }
+        .nav-mobile a:hover {
+            opacity: 0.7;
+        }
     </style>
 </head>
 
@@ -210,21 +338,39 @@
     <div class="cursor-dot" id="cursor"></div>
 
     <!-- 3. UI ELEMENTS: Floating Glassmorphism Navbar -->
-    <nav class="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl rounded-full glass-card px-8 py-4 flex justify-between items-center z-50 transform opacity-0 translate-y-4"
+    <nav class="fixed top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl rounded-full glass-card px-6 py-4 lg:px-8 flex justify-between items-center z-50 transform opacity-0 translate-y-4"
         id="navbar">
         <div class="font-syne font-bold text-xl tracking-tighter">OWWC 2026</div>
-        <div class="flex gap-4 md:gap-8 font-inter text-sm font-medium items-center">
+
+        <!-- Desktop: links + lang -->
+        <div class="nav-desktop gap-4 md:gap-8 font-inter text-sm font-medium items-center">
             <a href="#hero" class="hover:opacity-60 transition" data-cursor="hover" data-i18n="nav_home">Inicio</a>
-            <a href="#tryouts" class="hover:opacity-60 transition" data-cursor="hover"
-                data-i18n="nav_tryouts">Tryouts</a>
+            <a href="#tryouts" class="hover:opacity-60 transition" data-cursor="hover" data-i18n="nav_tryouts">Tryouts</a>
             <button id="lang-toggle"
                 class="ml-2 md:ml-4 px-3 py-1.5 rounded-full border border-gray-400 bg-white/30 hover:bg-white/60 transition text-xs font-bold uppercase cursor-none"
                 data-cursor="hover">EN</button>
         </div>
+
+        <!-- Lang toggle: always visible on tablet/mobile (outside hamburger) -->
+        <button id="lang-toggle-mobile" type="button"
+            class="lg:hidden ml-auto mr-3 px-3 py-1.5 rounded-full border border-gray-400 bg-white/30 hover:bg-white/60 transition text-xs font-bold uppercase"
+            aria-label="Cambiar idioma">EN</button>
+        <!-- Tablet & mobile: hamburger -->
+        <button type="button" class="hamburger-btn lg:hidden" id="hamburger-btn" aria-label="Abrir menú">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
     </nav>
 
+    <!-- Mobile/tablet menu overlay -->
+    <div class="nav-mobile" id="nav-mobile" aria-hidden="true">
+        <a href="#hero" data-i18n="nav_home">Inicio</a>
+        <a href="#tryouts" data-i18n="nav_tryouts">Tryouts</a>
+    </div>
+
     <!-- 5. IMAGERY & HERO SECTION -->
-    <main id="hero" class="relative min-h-screen flex items-center justify-center pt-20">
+    <main id="hero" class="relative min-h-[100dvh] min-h-screen flex items-center justify-center pt-24 pb-16 sm:pt-28 sm:pb-20 md:pt-20 md:pb-0">
 
         <!-- Center Left Image -->
         <div class="absolute top-1/4 left-10 lg:left-24 w-48 h-64 md:w-64 md:h-80 glass-card p-2 rounded-3xl parallax-img hidden md:block"
@@ -245,28 +391,28 @@
         </div>
 
         <!-- Subtle Team Ecuador Logo Background Drop -->
-        <div class="absolute top-32 left-1/2 -translate-x-1/2 opacity-[0.35] w-64 parallax-img" data-speed="0.02">
+        <div class="absolute top-24 left-1/2 -translate-x-1/2 opacity-25 w-40 sm:w-52 md:top-32 md:opacity-[0.35] md:w-64 parallax-img hero-bg-logo" data-speed="0.02">
             <!-- 
                 Please save your uploaded image into the public directory as "team-ecuador.jpg".
                 The CSS below natively crops out the logo perfectly using a radial mask!
             -->
             <img src="./team-ecuador.jpg" alt="Team Ecuador Logo" loading="lazy"
                 class="w-full h-auto filter drop-shadow-2xl saturate-[0.35] brightness-[1.1] contrast-[1.2] mix-blend-multiply"
-                style="mask-image: radial-gradient(circle at center, black 40%, transparent 65%); -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 65%); transform: scale(1.5);">
+                style="mask-image: radial-gradient(circle at center, black 40%, transparent 65%); -webkit-mask-image: radial-gradient(circle at center, black 40%, transparent 65%);">
         </div>
 
-        <!-- Epic Typography -->
-        <div class="text-center z-10 px-4">
+        <!-- Epic Typography: width from .hero-typography only (no Tailwind max-w) so ECUADOR fits at 10rem -->
+        <div class="text-center z-10 px-4 sm:px-6 md:px-8 w-full mx-auto hero-typography">
             <p
-                class="font-inter font-medium text-sm md:text-md uppercase tracking-[0.2em] mb-4 text-gray-500 reveal-overflow">
+                class="font-inter font-medium text-xs sm:text-sm md:text-base uppercase tracking-[0.12em] sm:tracking-[0.2em] mb-3 sm:mb-4 text-gray-500 reveal-overflow">
                 <span class="reveal-text headline-stagger" data-i18n="hero_sub">Road to the World Cup</span>
             </p>
             <h1
-                class="font-syne font-extrabold text-[4rem] sm:text-[6rem] md:text-[8rem] lg:text-[10rem] leading-[0.85] tracking-tighter text-metallic reveal-overflow mb-2">
+                class="hero-title font-syne font-extrabold leading-[0.9] sm:leading-[0.85] tracking-tighter text-metallic reveal-overflow mb-2 break-words">
                 <span class="reveal-text headline-stagger" data-i18n="hero_title">ECUADOR</span>
             </h1>
             <h2
-                class="font-syne font-bold text-3xl md:text-5xl lg:text-6xl tracking-tight text-gray-800 reveal-overflow mb-12">
+                class="font-syne font-bold text-2xl sm:text-3xl md:text-5xl lg:text-6xl tracking-tight text-gray-800 reveal-overflow mb-8 sm:mb-12">
                 <span class="reveal-text headline-stagger" data-i18n="hero_title2">TEAM TRYOUTS</span>
             </h2>
 
@@ -274,10 +420,26 @@
                 <div class="reveal-text headline-stagger">
                     <a href="#tryouts" class="only-paper-btn-wrapper" data-cursor="hover">
                         <div class="only-paper-btn-bg"></div>
-                        <div class="only-paper-btn-inner" data-i18n="hero_btn">
+                        <div class="only-paper-btn-inner hero-cta-btn" data-i18n="hero_btn">
                             Aplicar Ahora
                         </div>
                     </a>
+                </div>
+            </div>
+
+            <!-- Mobile only: left & right images below CTA; both fill equal space -->
+            <div class="flex md:hidden gap-3 mt-10 w-full">
+                <div class="flex-1 min-w-0 glass-card p-1.5 rounded-2xl">
+                    <div class="w-full h-full min-h-[140px] sm:min-h-[160px] rounded-xl overflow-hidden bg-white/50">
+                        <img src="./left-team.jpg" alt="Overwatch Red Team" loading="lazy"
+                            class="w-full h-full object-cover filter grayscale-[60%] contrast-[1.15] brightness-[0.9] saturate-[0.8] mix-blend-multiply">
+                    </div>
+                </div>
+                <div class="flex-1 min-w-0 glass-card p-1.5 rounded-2xl">
+                    <div class="w-full h-full min-h-[140px] sm:min-h-[160px] rounded-xl overflow-hidden bg-white/50">
+                        <img src="./right-team.jpg" alt="Overwatch Blue Team" loading="lazy"
+                            class="w-full h-full object-cover filter grayscale-[60%] contrast-[1.15] brightness-[0.9] saturate-[0.8] mix-blend-multiply">
+                    </div>
                 </div>
             </div>
         </div>
@@ -579,28 +741,58 @@
 
         let currentLang = 'es';
 
-        document.getElementById('lang-toggle').addEventListener('click', () => {
-            currentLang = currentLang === 'es' ? 'en' : 'es';
+        function applyI18n() {
             document.documentElement.lang = currentLang;
-
-            // Toggle button text (opposite of current lang to indicate what it switches to)
-            document.getElementById('lang-toggle').innerText = currentLang === 'es' ? 'EN' : 'ES';
-
-            // Update text nodes
+            const langBtnText = currentLang === 'es' ? 'EN' : 'ES';
+            const desktopBtn = document.getElementById('lang-toggle');
+            const mobileBtn = document.getElementById('lang-toggle-mobile');
+            if (desktopBtn) desktopBtn.innerText = langBtnText;
+            if (mobileBtn) mobileBtn.innerText = langBtnText;
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (i18n[currentLang][key]) {
-                    el.innerText = i18n[currentLang][key];
-                }
+                if (i18n[currentLang][key]) el.innerText = i18n[currentLang][key];
             });
-
-            // Update placeholders
             document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
                 const key = el.getAttribute('data-i18n-placeholder');
-                if (i18n[currentLang][key]) {
-                    el.placeholder = i18n[currentLang][key];
-                }
+                if (i18n[currentLang][key]) el.placeholder = i18n[currentLang][key];
             });
+        }
+        function setLang(lang) {
+            currentLang = lang;
+            applyI18n();
+        }
+
+        document.getElementById('lang-toggle').addEventListener('click', () => {
+            currentLang = currentLang === 'es' ? 'en' : 'es';
+            applyI18n();
+        });
+        document.getElementById('lang-toggle-mobile').addEventListener('click', () => {
+            currentLang = currentLang === 'es' ? 'en' : 'es';
+            applyI18n();
+        });
+
+        // Hamburger menu (tablet & mobile)
+        const hamburgerBtn = document.getElementById('hamburger-btn');
+        const navMobile = document.getElementById('nav-mobile');
+        function closeMobileMenu() {
+            hamburgerBtn.classList.remove('is-open');
+            navMobile.classList.remove('is-open');
+            navMobile.setAttribute('aria-hidden', 'true');
+        }
+        function openMobileMenu() {
+            hamburgerBtn.classList.add('is-open');
+            navMobile.classList.add('is-open');
+            navMobile.setAttribute('aria-hidden', 'false');
+        }
+        hamburgerBtn.addEventListener('click', () => {
+            if (navMobile.classList.contains('is-open')) closeMobileMenu();
+            else openMobileMenu();
+        });
+        navMobile.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', closeMobileMenu);
+        });
+        navMobile.addEventListener('click', (e) => {
+            if (e.target === navMobile) closeMobileMenu();
         });
 
         // ------------------ 1. Custom Dot Cursor + Parallax (single rAF per frame) ------------------
