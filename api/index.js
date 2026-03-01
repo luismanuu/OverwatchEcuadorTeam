@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const { Octokit } = require('@octokit/rest');
 require('dotenv').config();
 
 const app = express();
@@ -8,12 +7,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Evitar bloqueos tontos si la Key no existe al instanciar (lo valida despues)
-const authParams = process.env.GITHUB_TOKEN ? { auth: process.env.GITHUB_TOKEN } : undefined;
-const octokit = new Octokit(authParams);
-
 app.post('/api/submit', async (req, res) => {
     try {
+        const { Octokit } = await import('@octokit/rest');
+        const authParams = process.env.GITHUB_TOKEN ? { auth: process.env.GITHUB_TOKEN } : undefined;
+        const octokit = new Octokit(authParams);
+
         const {
             email,
             age,
